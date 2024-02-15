@@ -34,5 +34,3 @@ def sentiment_analysis_result(input_string):
 if __name__ == '__main__':
     
     sentiment_analysis_result()
-    
-    # python sentiment_analysis.py "The stock market is doing incredibly well today."
