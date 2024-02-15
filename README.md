@@ -4,6 +4,19 @@ PLease make sure that you have installed Python version 3.10
 
 Requirements:
 
+Click:
+
+`
+pip install click
+`
+
+or
+
+`
+pip3 install click
+`
+
+
 NLTK:
 
 `pip install nltk`
