@@ -1,7 +1,7 @@
 # Python Sentiment Analysis
 
 Disclaimer :
-1. For educational purposes only.
+1. For educational and record purposes only.
 2. Don't use them for real or live trade or trades.
 3. You are the only responsible for your actions. 
 
