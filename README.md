@@ -1,6 +1,12 @@
 # Python Sentiment Analysis
 
-PLease make sure that you have installed Python version 3.10
+Disclaimer :
+
+    For educational and record purposes only.
+    Don't use them for real trade
+    You are the only responsible for your actions 
+
+Please make sure that you have installed Python version 3.10
 
 Requirements:
 
