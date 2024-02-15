@@ -8,6 +8,10 @@ NLTK:
 
 `pip install nltk`
 
+or
+
+`pip3 install nltk`
+
 PyTorch [CPU only]:
 
 Please refer to [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/) for more information on how to install PyTorch [CPU Only].
@@ -15,6 +19,10 @@ Please refer to [https://pytorch.org/get-started/locally/](https://pytorch.org/g
 Transformers [CPU Only]:
 
 `pip install 'transformers[torch]'`
+
+or
+
+`pip3 install 'transformers[torch]'`
 
 Example of Usage:
 
