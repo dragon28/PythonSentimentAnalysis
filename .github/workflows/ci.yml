@@ -1,0 +1,14 @@
+name: ci
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --extra app
+      - run: uv run ruff check .
+      - run: uv run pytest -q
+      - name: Smoke-test the evaluation on real data (no transformers)
+        run: uv run finsent evaluate --no-transformers --limit 300 --out /tmp/smoke

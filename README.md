@@ -1,97 +1,87 @@
-# Python Sentiment Analysis
+# Python Sentiment Analysis: which model actually reads financial news best?
 
-Disclaimer :
-1. For educational and record purposes only.
-2. Don't use them for real or live trade or trades.
-3. You are the only responsible for your actions. 
+[![ci](https://github.com/dragon28/PythonSentimentAnalysis/actions/workflows/ci.yml/badge.svg)](https://github.com/dragon28/PythonSentimentAnalysis/actions/workflows/ci.yml)
 
-Please make sure that you have installed Python version 3.10
+This repo started (2024) as three one-off scripts that printed a sentiment score for a headline
+with VADER, FinVADER and FinBERT. It now answers a question: **on the same held-out financial
+tweets, how do lexicons, a classic ML baseline and pretrained transformers compare?**
 
-Requirements:
+> Educational project. Not investment advice; do not use it to trade.
 
-Click:
+## Data
 
-`
-pip install click
-`
+[Twitter Financial News Sentiment](https://huggingface.co/datasets/zeroshot/twitter-financial-news-sentiment)
+(MIT licence), pinned to revision `ccbe24d`: labels bearish / bullish / neutral.
 
-or
+* Train: 9,543 tweets. Test: the dataset's validation split, 2,349 tweets.
+* 39 test tweets were removed because they match a training tweet once URLs and case are ignored.
+* Test classes: 1,536 neutral, 473 bullish, 340 bearish, so **macro-F1** (each class counts equally) is the main metric; accuracy alone rewards always saying "neutral".
+* Data is downloaded on demand and is not committed.
 
-`
-pip3 install click
-`
+## Models
 
+| Model | Kind | Trained on this dataset? |
+|---|---|---|
+| Majority class | always predicts the commonest training label | yes (just counts) |
+| VADER (NLTK) | general-purpose lexicon | no |
+| FinVADER | VADER + finance lexicons (the original repo's approach) | no |
+| TF-IDF + logistic regression | word/bigram counts; C chosen by 5-fold CV on train only | yes |
+| FinBERT (ProsusAI) | BERT fine-tuned on Financial PhraseBank news sentences | no |
+| Twitter-RoBERTa (CardiffNLP) | RoBERTa fine-tuned on general tweets | no |
 
-NLTK:
+Lexicon scores use VADER's standard thresholds (compound >= 0.05 bullish, <= -0.05 bearish), not tuned on the test set.
+Transformer checkpoints are pinned to exact revisions and used off the shelf (no fine-tuning).
 
-`pip install nltk`
+## Results (measured, CPU)
 
-or
+| Model | Macro-F1 (95% bootstrap CI) | Accuracy | ms per text |
+|---|---|---|---|
+| TF-IDF + logistic regression | 0.767 (0.745-0.785) | 0.825 | 0.01 |
+| FinBERT (ProsusAI) | 0.667 (0.644-0.687) | 0.724 | 8.52 |
+| Twitter-RoBERTa (CardiffNLP) | 0.612 (0.587-0.634) | 0.702 | 8.63 |
+| FinVADER (finance lexicon) | 0.515 (0.491-0.538) | 0.582 | 2.73 |
+| VADER (NLTK lexicon) | 0.448 (0.426-0.469) | 0.496 | 0.05 |
+| Majority class | 0.264 (0.259-0.268) | 0.654 | 0.00 |
 
-`pip3 install nltk`
+Full per-class scores, confusion matrices and a sample of errors: [results/report.md](results/report.md).
+Raw numbers: [results/metrics.json](results/metrics.json).
 
-PyTorch [CPU only]:
+## What this shows
 
-Please refer to [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/) for more information on how to install PyTorch [CPU Only].
+* The finance lexicon (FinVADER) beats plain VADER, but both trail every learned model.
+* A cheap TF-IDF model trained on in-domain tweets beats both off-the-shelf transformers here, and its
+  confidence interval does not overlap theirs. Domain match mattered more than model size.
+* This is **not** a claim that TF-IDF is better than transformers: it saw labelled tweets from this
+  dataset and they did not. A transformer fine-tuned on the same training split would be the fair
+  next comparison.
+* The errors are mostly about stance, not words: "Stocks aim for back-to-back gains as investors
+  focus on coronavirus..." is labelled bullish, but TF-IDF reads "coronavirus" as bearish.
 
-Transformers [CPU Only]:
+## Limitations
 
-`pip install 'transformers[torch]'`
+* One dataset, one domain (short English financial tweets from 2019-2020). Results may not transfer to full articles.
+* Labels come from the dataset authors; a few look debatable.
+* Transformer probabilities are not calibrated; only labels are evaluated.
+* Timing is one machine, batched, after warm-up; treat it as relative.
+* The dataset's training data and FinBERT's / RoBERTa's training data were not checked for overlap with this test set beyond public descriptions.
 
-or
+## Run it
 
-`pip3 install 'transformers[torch]'`
-
-FinVader:
-
-`pip install finvader`
-
-or 
-
-`pip3 install finvader`
-
-Example of Usage:
-
-Refering to [https://www.investing.com/news/commodities-news/oil-prices-extend-losses-on-us-inventory-shock-demand-concerns-3304210](https://www.investing.com/news/commodities-news/oil-prices-extend-losses-on-us-inventory-shock-demand-concerns-3304210) :
-
-<h1>Oil prices extend losses on US inventory shock, demand concerns</h1>
-
-<p>Investing.com-- Oil prices fell in Asian trade on Thursday, extending losses after a substantially bigger-than-expected build in U.S. inventories pointed to well-supplied markets, while Japanese recession signals drove up concerns over slowing demand. Crude prices had lost over $1 each on Wednesday after data showed U.S. oil inventories grew a staggering 12 million barrels in the week to February 9, much higher than expectations for a build of 3.3 million barrels. The reading was driven chiefly by record-high U.S. production, indicating that the world’s largest fuel consumer remained well-supplied with oil. While gasoline and distillate inventories shrank, the drop was attributed largely to extended refinery shutdowns, due to maintenance activity. U.S. fuel demand was seen weakening in recent months amid adverse weather and increasing economic pressure from high inflation and interest rates.</p>
-
-```
-$ python sentiment_analysis_nltk_vader.py "Oil prices extend losses on US inventory shock, demand concerns"
-Sentiment: negative with score: 0.469
-{'neg': 0.469, 'neu': 0.414, 'pos': 0.117, 'compound': -0.6249}
-
-$ python sentiment_analysis_nltk_vader.py "Investing.com-- Oil prices fell in Asian trade on Thursday, extending losses after a substantially bigger-than-expected build in U.S. inventories pointed to well-supplied markets, while Japanese recession signals drove up concerns over slowing demand. Crude prices had lost over $1 each on Wednesday after data showed U.S. oil inventories grew a staggering 12 million barrels in the week to February 9, much higher than expectations for a build of 3.3 million barrels. The reading was driven chiefly by record-high U.S. production, indicating that the world’s largest fuel consumer remained well-supplied with oil. While gasoline and distillate inventories shrank, the drop was attributed largely to extended refinery shutdowns, due to maintenance activity. U.S. fuel demand was seen weakening in recent months amid adverse weather and increasing economic pressure from high inflation and interest rates."
-Sentiment: neutral with score: 0.815
-{'neg': 0.164, 'neu': 0.815, 'pos': 0.021, 'compound': -0.9485}
-```
-
-```
-$ python sentiment_analysis_transformers_finbert.py "Oil prices extend losses on US inventory shock, demand concerns"
-Sentiment: negative with score: 0.9329016804695129
-Positive: 0.029342176392674446
-Negative: 0.9329016804695129
-Neutral: 0.03775615245103836
-
-$ python sentiment_analysis_transformers_finbert.py "Investing.com-- Oil prices fell in Asian trade on Thursday, extending losses after a substantially bigger-than-expected build in U.S. inventories pointed to well-supplied markets, while Japanese recession signals drove up concerns over slowing demand. Crude prices had lost over $1 each on Wednesday after data showed U.S. oil inventories grew a staggering 12 million barrels in the week to February 9, much higher than expectations for a build of 3.3 million barrels. The reading was driven chiefly by record-high U.S. production, indicating that the world’s largest fuel consumer remained well-supplied with oil. While gasoline and distillate inventories shrank, the drop was attributed largely to extended refinery shutdowns, due to maintenance activity. U.S. fuel demand was seen weakening in recent months amid adverse weather and increasing economic pressure from high inflation and interest rates."
-Sentiment: negative with score: 0.9738574028015137
-Positive: 0.011814839206635952
-Negative: 0.9738574028015137
-Neutral: 0.014327661134302616
+```bash
+uv sync --all-extras          # Python 3.12; CPU-only PyTorch
+uv run finsent evaluate       # downloads data + models, writes results/ (about 1-2 minutes)
+uv run finsent evaluate --no-transformers   # fast, no model downloads
+uv run finsent predict "Oil prices extend losses on US inventory shock, demand concerns"
+uv run streamlit run app.py   # interactive demo
+uv run pytest -q              # tests on a tiny offline fixture
 ```
 
-```
-$ python sentiment_analysis_nltk_finvader.py "Oil prices extend losses on US inventory shock, demand concerns"
-[nltk_data] Downloading package vader_lexicon to
-[nltk_data]     /home/test/nltk_data...
-[nltk_data]   Package vader_lexicon is already up-to-date!
-Sentiment score: -0.3979
+## Layout
 
-$ python sentiment_analysis_nltk_finvader.py "Investing.com-- Oil prices fell in Asian trade on Thursday, extending losses after a substantially bigger-than-expected build in U.S. inventories pointed to well-supplied markets, while Japanese recession signals drove up concerns over slowing demand. Crude prices had lost over $1 each on Wednesday after data showed U.S. oil inventories grew a staggering 12 million barrels in the week to February 9, much higher than expectations for a build of 3.3 million barrels. The reading was driven chiefly by record-high U.S. production, indicating that the world’s largest fuel consumer remained well-supplied with oil. While gasoline and distillate inventories shrank, the drop was attributed largely to extended refinery shutdowns, due to maintenance activity. U.S. fuel demand was seen weakening in recent months amid adverse weather and increasing economic pressure from high inflation and interest rates."
-[nltk_data] Downloading package vader_lexicon to
-[nltk_data]     /home/test/nltk_data...
-[nltk_data]   Package vader_lexicon is already up-to-date!
-Sentiment score: -0.1514
+```
+src/finsent/  data.py (pinned download, near-duplicate removal)  models.py  evaluate.py  report.py  cli.py
+app.py        Streamlit demo (lexicons + TF-IDF live; transformer scores from saved results)
+results/      metrics.json, report.md (committed, regenerated by `finsent evaluate`)
+legacy/       the original 2024 scripts, unchanged
+tests/        unit + offline end-to-end test
 ```

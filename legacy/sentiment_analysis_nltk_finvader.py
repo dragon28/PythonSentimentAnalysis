@@ -1,6 +1,6 @@
-import nltk
-from finvader import finvader
 import click
+from finvader import finvader
+
 
 def analyze_sentiment(news):
     

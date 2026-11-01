@@ -1,6 +1,6 @@
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import click
+import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 # Load the pre-trained model
 tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
