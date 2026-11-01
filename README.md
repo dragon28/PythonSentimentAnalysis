@@ -2,6 +2,8 @@
 
 [![ci](https://github.com/dragon28/PythonSentimentAnalysis/actions/workflows/ci.yml/badge.svg)](https://github.com/dragon28/PythonSentimentAnalysis/actions/workflows/ci.yml)
 
+**[Open the interactive demo →](https://dragon28sentimentanalysis.streamlit.app/)** (Streamlit; if it has been idle, click the wake-up button and wait about a minute)
+
 This repo started (2024) as three one-off scripts that printed a sentiment score for a headline
 with VADER, FinVADER and FinBERT. It now answers a question: **on the same held-out financial
 tweets, how do lexicons, a classic ML baseline and pretrained transformers compare?**
