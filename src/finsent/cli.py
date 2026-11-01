@@ -41,13 +41,17 @@ def evaluate(out, no_transformers, limit):
 @click.argument("text")
 def predict(text):
     """Show every model's label for one headline."""
+    import json
+
     from finsent import models
 
+    data.download()
     train, _, _ = data.load_splits()
+    c = json.loads(Path("results/metrics.json").read_text())["meta"]["tfidf_C"]
     zoo = [
         models.Vader(),
         models.FinVader(),
-        models.TfidfLogReg().fit(train.text, train.label),
+        models.TfidfLogReg(c).fit(train.text, train.label),
         models.finbert(),
         models.twitter_roberta(),
     ]

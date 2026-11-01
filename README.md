@@ -69,7 +69,7 @@ Raw numbers: [results/metrics.json](results/metrics.json).
 
 ```bash
 uv sync --all-extras          # Python 3.12; CPU-only PyTorch
-uv run finsent evaluate       # downloads data + models, writes results/ (about 1-2 minutes)
+uv run finsent evaluate       # downloads data + models, writes results/ (a few minutes on CPU)
 uv run finsent evaluate --no-transformers   # fast, no model downloads
 uv run finsent predict "Oil prices extend losses on US inventory shock, demand concerns"
 uv run streamlit run app.py   # interactive demo
